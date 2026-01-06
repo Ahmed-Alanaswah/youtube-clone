@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Youtube_API } from "../utils/constants.";
 import VideoCard from "./VideoCard";
+import { Link } from "react-router-dom";
 const VideoConianer = () => {
   const [videos, setVideos] = useState([]);
   const getVideos = async () => {
@@ -16,7 +17,9 @@ const VideoConianer = () => {
   return (
     <div className="grid grid-cols-4 gap-4 py-3">
       {videos?.map((item) => (
-        <VideoCard item={item} />
+        <Link key={item.id} to={"/watch?videoId=" + item.id}>
+          <VideoCard item={item} />
+        </Link>
       ))}
     </div>
   );
