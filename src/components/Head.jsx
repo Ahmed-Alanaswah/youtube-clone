@@ -1,13 +1,49 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { openSideBarHandler } from "../store/appSlice";
 
 const Head = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchData, setSearchData] = useState([]);
+  const [showSearchData, setShowSearchData] = useState(false);
   const dispatch = useDispatch();
   const handleToggle = () => dispatch(openSideBarHandler());
 
+  const getSuggetstionData = async () => {
+    try {
+      const res = await fetch(
+        `https://corsproxy.io/?url=http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${searchQuery}`
+      );
+
+      const json = await res.json();
+
+      console.log("55555555555555558888", res);
+
+      setSearchData(json[1]);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  console.log("555555554444444445", searchQuery);
+
+  useEffect(() => {
+    //wait for time to finish
+    // clear time out if type quickly before timer finish it will  clear and remove settimeout from mempry then reset time from beginog
+    // then each  key stoke we remove the settimeout and start from begining
+    // if the time finish  before do  new key  stroke the funuction will invoke and get data
+    // and do  this cycle every  key stroke
+    const timer = setTimeout(() => {
+      getSuggetstionData();
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
+
   return (
-    <div className="grid grid-flow-col p-2 m-2 shadow-lg">
+    <div className="grid grid-flow-col p-2 shadow-lg">
       <div className="flex col-span-1">
         <img
           onClick={handleToggle}
@@ -23,14 +59,34 @@ const Head = () => {
           />
         </a>
       </div>
-      <div className="col-span-10">
-        <input
-          type="text"
-          className="w-1/2 p-2 border border-gray-400 rounded-l-full"
-        />
-        <button className="p-2 border border-gray-400 rounded-r-full bg-gray-100">
-          search
-        </button>
+      <div className="col-span-10 relative">
+        <div>
+          <input
+            type="text"
+            className="w-1/2 p-2 px-4 border border-gray-400 rounded-l-full"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setShowSearchData(true)}
+            onBlur={() => setShowSearchData(false)}
+          />
+          <button className="p-2 border border-gray-400 rounded-r-full bg-gray-100">
+            search
+          </button>
+          {showSearchData && searchData && searchData.length && (
+            <div className="absolute bg-white w-[42rem] mt-2 rounded-lg shadow-lg border broder-gray-1 p-2">
+              <ul>
+                {searchData?.map((item, i) => (
+                  <li
+                    key={i}
+                    className=" py-2 px-4 hover:bg-gray-500 hover:text-white"
+                  >
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
       <div className="col-span-1">
         <img
