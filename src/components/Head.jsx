@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { openSideBarHandler } from "../store/appSlice";
+import { cacheResults } from "../store/searchSlice";
+import { img_profile, img_menu } from "../utils/constants.";
 
 const Head = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -9,23 +11,30 @@ const Head = () => {
   const dispatch = useDispatch();
   const handleToggle = () => dispatch(openSideBarHandler());
 
+  const cachedSearch = useSelector((store) => store.search);
+
   const getSuggetstionData = async () => {
     try {
-      const res = await fetch(
-        `https://corsproxy.io/?url=http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${searchQuery}`
-      );
+      if (cachedSearch[searchQuery]) {
+        setSearchData(cachedSearch[searchQuery]);
+      } else {
+        const res = await fetch(
+          `https://corsproxy.io/?url=http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${searchQuery}`
+        );
 
-      const json = await res.json();
+        const json = await res.json();
+        setSearchData(json[1]);
 
-      console.log("55555555555555558888", res);
-
-      setSearchData(json[1]);
+        dispatch(
+          cacheResults({
+            [searchQuery]: json[1],
+          })
+        );
+      }
     } catch (error) {
       console.error(error);
     }
   };
-
-  console.log("555555554444444445", searchQuery);
 
   useEffect(() => {
     //wait for time to finish
@@ -48,7 +57,7 @@ const Head = () => {
         <img
           onClick={handleToggle}
           className="h-8 cursor-pointer"
-          src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAYFBMVEX///8AAADPz89LS0uWlpb39/eCgoKQkJCxsbH29vZiYmI4ODh0dHTX19empqbFxcXr6+sQEBDh4eEbGxu7u7s0NDR6enpXV1egoKDJyclvb28ODg6IiIhcXFwfHx8ZGRnwNjATAAACZUlEQVR4nO3dCW7CMBCFYRdIw75vbSm9/y2rqKgUVRo72NJoxv93gveUkGBj7BAAAAAAAAAAAAAAAAAAoAKrdjq0Y9qu+tVbH1/sOa7TC7baYZ/UJvZrZtpJnzZrkgputHNm2KRUPGinzHKIF3zVzpjpNVZwq50w2zbScKodMNtULjjRzlfARGw41o5XwFhsONeOV8BcbGj3ZX83Extqpyui8oY77XQFXMWGJ+14BZzEhlbHTX/JY6iBdrwCFmJDD48auWBYaufLtow0NP803cUKhoV2xEyRT6H9+zR6j3bO2ikznFMKhrDSzvm05GnhxuYgap40l3izHlmbcpuNekx53y7kdmDHts/lAwAAAAAAAAAAxjRvy5Edy7e+P1zsh9q/JfU23PfoN7hqx33KdZBa0O5i9ugy9h+f2jkzfKYUfNdOmeU9XtD6Sm95lXfwsFhfXqofwkU7YLZLpKF2vgLkgnYXC93Jy4bsvgrv5JeivS9r/w3Fhh/a8QrYiA210xVR+TX0/zn0/yz1/z708KiRC1bwvdT+2CI6JeV+fFjBGL+CeRrLT5vEubYK5kuD/znvjvffLQAAAAAAAAAAgCHO94myt9fXoddeXxOj+7XFFkD/srtsKHHPPff7Jrrf+9L//qVf2hEzRfegtX2PdmL3qXa+AuSC/vfz9r8nu/999a3v5t2Rn6ba6YqovKH/c2ZsDpseyWcFWV/l3ZFXettfqh/9I7D7c9cqODvP/H+7EhazW5tke5RwhmVoLI+Bk84h9X+WbLA7hko9DzhUcKZzx/m53AAAAAAAAAAAAAAAAABg0zfn21Nf0tdOJAAAAABJRU5ErkJggg=="
+          src={img_menu}
           alt="menu"
         />
         <a href="/">
@@ -89,11 +98,7 @@ const Head = () => {
         </div>
       </div>
       <div className="col-span-1">
-        <img
-          className="h-9"
-          src="https://static.vecteezy.com/system/resources/previews/019/879/186/non_2x/user-icon-on-transparent-background-free-png.png"
-          alt="user"
-        />
+        <img className="h-9" src={img_profile} alt="user" />
       </div>
     </div>
   );
